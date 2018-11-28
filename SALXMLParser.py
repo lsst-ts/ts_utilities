@@ -10,22 +10,34 @@ class SALXMLParser:
         return self.parseCommands(commandsPath, genericsPath), self.parseEvents(eventsPath, genericsPath), self.parseTelemetry(telemetryPath, genericsPath), self.parseEnumerations(eventsPath)
 
     def parseCommands(self, commandsPath, genericsPath):
-        generics = self.parseItem(genericsPath, ".//SALCommand", lambda subsystem, version, author, name, parameters: SALCommand(subsystem, version, author, name, parameters))
-        commands = self.parseItem(commandsPath, ".//SALCommand", lambda subsystem, version, author, name, parameters: SALCommand(subsystem, version, author, name, parameters))
+        generics = []
+        if genericsPath != "None":
+            generics = self.parseItem(genericsPath, ".//SALCommand", lambda subsystem, version, author, name, parameters: SALCommand(subsystem, version, author, name, parameters))
+        commands = []
+        if commandsPath != "None":
+            commands = self.parseItem(commandsPath, ".//SALCommand", lambda subsystem, version, author, name, parameters: SALCommand(subsystem, version, author, name, parameters))
         for generic in generics:
             generic.subsystem = commands[0].subsystem
         return generics + commands
 
     def parseEvents(self, eventsPath, genericsPath):
-        generics = self.parseItem(genericsPath, ".//SALEvent", lambda subsystem, version, author, name, parameters: SALEvent(subsystem, version, author, name, parameters))
-        events = self.parseItem(eventsPath, ".//SALEvent", lambda subsystem, version, author, name, parameters: SALEvent(subsystem, version, author, name, parameters))
+        generics = []
+        if genericsPath != "None":
+            generics = self.parseItem(genericsPath, ".//SALEvent", lambda subsystem, version, author, name, parameters: SALEvent(subsystem, version, author, name, parameters))
+        events = []
+        if eventsPath != "None":            
+            events = self.parseItem(eventsPath, ".//SALEvent", lambda subsystem, version, author, name, parameters: SALEvent(subsystem, version, author, name, parameters))
         for generic in generics:
             generic.subsystem = events[0].subsystem
         return generics + events
 
     def parseTelemetry(self, telemetryPath, genericsPath):
-        generics = self.parseItem(genericsPath, ".//SALTelemetry", lambda subsystem, version, author, name, parameters: SALTelemetry(subsystem, version, author, name, parameters))
-        telemetry = self.parseItem(telemetryPath, ".//SALTelemetry", lambda subsystem, version, author, name, parameters: SALTelemetry(subsystem, version, author, name, parameters))
+        generics = []
+        if genericsPath != "None":
+            generics = self.parseItem(genericsPath, ".//SALTelemetry", lambda subsystem, version, author, name, parameters: SALTelemetry(subsystem, version, author, name, parameters))
+        telemetry = []
+        if telemetryPath != "None":
+            telemetry = self.parseItem(telemetryPath, ".//SALTelemetry", lambda subsystem, version, author, name, parameters: SALTelemetry(subsystem, version, author, name, parameters))
         for generic in generics:
             generic.subsystem = telemetry[0].subsystem
         return generics + telemetry
