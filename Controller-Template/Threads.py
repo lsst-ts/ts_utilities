@@ -1,51 +1,61 @@
-import time
+import logging
 import threading
-from Commands import StartCommand, EnableCommand, DisableCommand, StandbyCommand, UpdateCommand
+import {subsystem}Controller
+import Controller
+import Commands
+import time
 
 class Thread(threading.Thread):
     def __init__(self):
-        threading.Thread.__init__(self)
+        threading.Thread.__init__(self, name = type(self).__name__)
+        self.log = logging.getLogger("Thread")
         self.running = False
 
     def stop(self):
+        self.log.info("Stopping thread %s." % self.name)
         self.running = False
 
 class SubscriberThread(Thread):
-    def __init__(self, sal, controller):
+    def __init__(self, sal : {subsystem}Controller.{subsystem}Controller, controller : Controller.Controller, loopTimeInSec : float):
         Thread.__init__(self)
         self.sal = sal
         self.controller = controller
-        self.sal.subscribeCommand_start(lambda commandId, data: self.controller.enqueue(StartCommand(self.sal, commandId, data)))
-        self.sal.subscribeCommand_enable(lambda commandId, data: self.controller.enqueue(EnableCommand(self.sal, commandId, data)))
-        self.sal.subscribeCommand_disable(lambda commandId, data: self.controller.enqueue(DisableCommand(self.sal, commandId, data)))
-        self.sal.subscribeCommand_standby(lambda commandId, data: self.controller.enqueue(StandbyCommand(self.sal, commandId, data)))
+        self.loopTimeInSec = loopTimeInSec
+{commandDefinitions}
 
     def run(self):
+        self.log.info("Starting thread %s." % self.name)
         self.running = True
         while self.running:
             self.sal.runSubscriberChecks()
-            time.sleep(0.001)
+            time.sleep(self.loopTimeInSec)
+        self.log.info("Thread %s completed." % self.name)
 
 class ControllerThread(Thread):
-    def __init__(self, controller):
+    def __init__(self, controller : Controller.Controller, loopTimeInSec : float):
         Thread.__init__(self)
         self.controller = controller
+        self.loopTimeInSec = loopTimeInSec
 
     def run(self):
+        self.log.info("Starting thread %s." % self.name)
         self.running = True
         while self.running:
             command = self.controller.dequeue()
             self.controller.execute(command)
-            time.sleep(0.001)
+            time.sleep(self.loopTimeInSec)
+        self.log.info("Thread %s completed." % self.name)
 
 class OuterLoopThread(Thread):
-    def __init__(self, controller, loopTime):
+    def __init__(self, controller : Controller.Controller, loopTimeInSec : float):
         Thread.__init__(self)
         self.controller = controller
-        self.loopTime = loopTime
+        self.loopTimeInSec = loopTimeInSec
 
     def run(self):
+        self.log.info("Starting thread %s." % self.name)
         self.running = True
         while self.running:
-            self.controller.enqueue(UpdateCommand())
-            time.sleep(self.loopTime)
+            self.controller.enqueue(Commands.UpdateCommand())
+            time.sleep(self.loopTimeInSec)
+        self.log.info("Thread %s completed." % self.name)

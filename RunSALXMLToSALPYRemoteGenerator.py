@@ -1,5 +1,6 @@
 from SALXMLParser import *
 from SALPYRemoteGenerator import *
+from PythonEnumerationGenerator import *
 import os
 import sys
 
