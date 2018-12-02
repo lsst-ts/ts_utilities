@@ -7,7 +7,7 @@ import time
 
 class Thread(threading.Thread):
     def __init__(self):
-        threading.Thread.__init__(self, name = type(self).__name__)
+        threading.Thread.__init__(self, name = type(self).__name__.replace("Thread", ""))
         self.log = logging.getLogger("Thread")
         self.running = False
 

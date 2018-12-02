@@ -1,5 +1,6 @@
 from SALXMLParser import *
 from SALPYControllerGenerator import *
+from SALPYRemoteGenerator import *
 from PythonEnumerationGenerator import *
 import os
 import sys
@@ -85,26 +86,34 @@ usage: *.py <GenericsPath> <CommandsPath> <EventsPath> <TelemetryPath> <OutputDi
 example: *.py /tmp/SALGenerics.xml /tmp/tmp_Commands.xml /tmp/tmp_Events.xml /tmp/tmp_Telemetry.xml /tmp/tmpEUI""")
 else:
     outputDir = sys.argv[5]
+    if not os.path.exists(os.path.join(outputDir, "src")):
+        os.makedirs(os.path.join(outputDir, "src"))
+    if not os.path.exists(os.path.join(outputDir, "tests")):
+        os.makedirs(os.path.join(outputDir, "tests"))
+    
     parser = SALXMLParser()
     commands, events, telemetry, enumerations = parser.parse(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
     generator = PythonEnumerationGenerator()
-    generator.generate(commands, events, telemetry, enumerations, outputDir)
+    generator.generate(commands, events, telemetry, enumerations, os.path.join(outputDir, "src"))
     generator = SALPYControllerGenerator(commands, events, telemetry)
-    generator.generate(outputDir)
+    generator.generate(os.path.join(outputDir, "src"))
+    generator.generate(os.path.join(outputDir, "tests"))
+    generator = SALPYRemoteGenerator(commands, events, telemetry)
+    generator.generate(os.path.join(outputDir, "tests"))
 
     templateDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Controller-Template")
-    
 
-    processCommands(commands, os.path.join(templateDir, "Commands.py"), os.path.join(templateDir, "CommandTemplate.py"), os.path.join(outputDir, "Commands.py"))
-    processContext(commands, os.path.join(templateDir, "Context.py"), os.path.join(templateDir, "ContextCommandTemplate.py"), os.path.join(outputDir, "Context.py"))
-    processController(commands, os.path.join(templateDir, "Controller.py"), os.path.join(templateDir, "ControllerCommandTemplate.py"), os.path.join(outputDir, "Controller.py"))
-    processStates(commands, os.path.join(templateDir, "States.py"), os.path.join(templateDir, "StatesCommandTemplate.py"), os.path.join(outputDir, "States.py"))
-    processThreads(commands, os.path.join(templateDir, "Threads.py"), os.path.join(templateDir, "ThreadsCommandTemplate.py"), os.path.join(outputDir, "Threads.py"))
+    processCommands(commands, os.path.join(templateDir, "src", "Commands.py"), os.path.join(templateDir, "src", "CommandTemplate.py"), os.path.join(outputDir, "src", "Commands.py"))
+    processContext(commands, os.path.join(templateDir, "src", "Context.py"), os.path.join(templateDir, "src", "ContextCommandTemplate.py"), os.path.join(outputDir, "src", "Context.py"))
+    processController(commands, os.path.join(templateDir, "src", "Controller.py"), os.path.join(templateDir, "src", "ControllerCommandTemplate.py"), os.path.join(outputDir, "src", "Controller.py"))
+    processStates(commands, os.path.join(templateDir, "src", "States.py"), os.path.join(templateDir, "src", "StatesCommandTemplate.py"), os.path.join(outputDir, "src", "States.py"))
+    processThreads(commands, os.path.join(templateDir, "src", "Threads.py"), os.path.join(templateDir, "src", "ThreadsCommandTemplate.py"), os.path.join(outputDir, "src", "Threads.py"))
     files = [
-        [os.path.join(templateDir, "Main.py"), os.path.join(outputDir, "Main.py")],
-        [os.path.join(templateDir, "Model.py"), os.path.join(outputDir, "Model.py")],
-        [os.path.join(templateDir, "Run.py"), os.path.join(outputDir, "Run.py")],
-        [os.path.join(templateDir, "Setup.py"), os.path.join(outputDir, "Setup.py")],
+        [os.path.join(templateDir, "src", "Main.py"), os.path.join(outputDir, "src", "Main.py")],
+        [os.path.join(templateDir, "src", "Model.py"), os.path.join(outputDir, "src", "Model.py")],
+        [os.path.join(templateDir, "src", "Run.py"), os.path.join(outputDir, "src", "Run.py")],
+        [os.path.join(templateDir, "src", "Setup.py"), os.path.join(outputDir, "src", "Setup.py")],
+        [os.path.join(templateDir, "tests", "Tests.py"), os.path.join(outputDir, "tests", "Tests.py")],
     ]
     for file in files:
         source = file[0]
