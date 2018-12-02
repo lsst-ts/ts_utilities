@@ -101,7 +101,7 @@ else:
     processStates(commands, os.path.join(templateDir, "States.py"), os.path.join(templateDir, "StatesCommandTemplate.py"), os.path.join(outputDir, "States.py"))
     processThreads(commands, os.path.join(templateDir, "Threads.py"), os.path.join(templateDir, "ThreadsCommandTemplate.py"), os.path.join(outputDir, "Threads.py"))
     files = [
-        [os.path.join(templateDir, "Main.pyx"), os.path.join(outputDir, "Main.pyx")],
+        [os.path.join(templateDir, "Main.py"), os.path.join(outputDir, "Main.py")],
         [os.path.join(templateDir, "Model.py"), os.path.join(outputDir, "Model.py")],
         [os.path.join(templateDir, "Run.py"), os.path.join(outputDir, "Run.py")],
         [os.path.join(templateDir, "Setup.py"), os.path.join(outputDir, "Setup.py")],

@@ -5,7 +5,7 @@ files = [
     "Commands.py",
     "Context.py",
     "Controller.py"
-    "Main.pyx",
+    "Main.py",
     "Model.py",
     "{subsystem}Controller.py",
     "States.py",
