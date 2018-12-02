@@ -4,10 +4,11 @@ from Cython.Build import cythonize
 files = [
     "Commands.py",
     "Context.py",
-    "Controller.py"
+    "Controller.py",
     "Main.py",
     "Model.py",
     "{subsystem}Controller.py",
+    "{subsystem}Enumerations.py",
     "States.py",
     "Threads.py"
 ]
