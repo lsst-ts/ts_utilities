@@ -1,1 +1,0 @@
-        self.sal.subscribeCommand_{name}(lambda commandId, data: self.controller.enqueue(Commands.{upperName}Command(self.sal, commandId, data)))

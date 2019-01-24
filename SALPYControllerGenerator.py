@@ -12,6 +12,7 @@ class {subsystem}Controller:
 {eventInitializers}
 {telemetryInitializers}
 {commandSubscriptionInitializers}
+{eventPreviousDataInitializers}
         self.topicsSubscribedToo = {emptyMap}
 
     def close(self):
@@ -50,7 +51,7 @@ class {subsystem}Controller:
         self.telemetry = telemetry
 
     def generate(self, outputDirectory):
-        text = self.template.format(subsystem = self.commands[0].subsystem, commandInitializers = self.getCommandInitializers(), commandSubscriptionInitializers = self.getCommandSubscriptionInitializers(), eventInitializers = self.getEventInitializers(), telemetryInitializers = self.getTelemetryInitializers(), commandDefinitions = self.getCommandDefinitions(), eventDefinitions = self.getEventDefinitions(), telemetryDefinitions = self.getTelemetryDefinitions(), emptyMap = "{}")
+        text = self.template.format(subsystem = self.commands[0].subsystem, commandInitializers = self.getCommandInitializers(), commandSubscriptionInitializers = self.getCommandSubscriptionInitializers(), eventInitializers = self.getEventInitializers(), telemetryInitializers = self.getTelemetryInitializers(), commandDefinitions = self.getCommandDefinitions(), eventDefinitions = self.getEventDefinitions(), telemetryDefinitions = self.getTelemetryDefinitions(), emptyMap = "{}", eventPreviousDataInitializers = self.getEventPreviousDataInitializers())
         path = os.path.join(outputDirectory, "%sController.py" % (self.commands[0].subsystem))
         with open(path, "w") as file:  
             file.write(text)
@@ -96,29 +97,51 @@ class {subsystem}Controller:
             result = result + template.format(subsystem = event.subsystem, name = event.name)
         return result
 
+    def getEventPreviousDataInitializers(self):
+        template = "        self.previousEvent_{name} = {subsystem}_logevent_{name}C()\n"
+        result = ""
+        for event in self.events:
+            result = result + template.format(subsystem = event.subsystem, name = event.name)
+        return result
+
     def getEventDefinitions(self):
         template = """
     def logEvent_{name}(self, {parameters}, priority = 0):
         data = {subsystem}_logevent_{name}C()
 {setParameters}
+        self.previousEvent_{name} = data
         return self.sal.logEvent_{name}(data, priority)
+
+    def tryLogEvent_{name}(self, {parameters}, priority = 0):
+        anythingChanged = False
+{checkParameters}
+        if anythingChanged:
+            return self.logEvent_{name}({parameters}, priority)
+        return 0
 """
         parameterTemplate = "{name}, "
         setParameterTemplate = "        data.{name} = {name}\r\n"
         setArrayParameterTemplate = """        for i in range({count}):
             data.{name}[i] = {name}[i]
 """
+        checkParameterTemplate = "        anythingChanged = anythingChanged or self.previousEvent_{eventName}.{parameterName} != {parameterName}\r\n"
+        checkArrayParameterTemplate = """        for i in range({count}):
+            anythingChanged = anythingChanged or self.previousEvent_{eventName}.{parameterName}[i] != {parameterName}[i]
+"""
         result = ""
         for event in self.events:
             parameters = ""
             setParameters = ""
+            checkParameters = ""
             for parameter in event.parameters:
                 parameters = parameters + parameterTemplate.format(name = parameter.name)
                 if int(parameter.count) > 1 and parameter.type != "string":
                     setParameters = setParameters + setArrayParameterTemplate.format(name = parameter.name, count = parameter.count)
+                    checkParameters = checkParameters + checkArrayParameterTemplate.format(eventName = event.name, parameterName = parameter.name, count = parameter.count)
                 else:
                     setParameters = setParameters + setParameterTemplate.format(name = parameter.name)
-            result = result + template.format(subsystem = event.subsystem, name = event.name, parameters = parameters[:-2], setParameters = setParameters)
+                    checkParameters = checkParameters + checkParameterTemplate.format(eventName = event.name, parameterName = parameter.name)
+            result = result + template.format(subsystem = event.subsystem, name = event.name, parameters = parameters[:-2], setParameters = setParameters, checkParameters = checkParameters)
         return result
     
     def getTelemetryInitializers(self):

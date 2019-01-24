@@ -1,11 +1,9 @@
 from SALXMLParser import *
-from SALPYControllerGenerator import *
-from SALPYRemoteGenerator import *
-from PythonEnumerationGenerator import *
+from SALPYGenerator import *
 import os
 import sys
 
-def processCommands(commands, sourceTemplateFile, commandTemplateFile, destinationFile):
+def processCommands(namespace, commands, sourceTemplateFile, commandTemplateFile, destinationFile):
     commandTemplate = ""
     with open(commandTemplateFile, "r") as f:
         commandTemplate = f.read()
@@ -14,12 +12,12 @@ def processCommands(commands, sourceTemplateFile, commandTemplateFile, destinati
     for command in commands:
         name = command.name
         upperName = name[0].upper() + name[1:]
-        commandDefinitions = commandDefinitions + "\n" + commandTemplate.format(subsystem = subsystem, name = name, upperName = upperName)
+        commandDefinitions = commandDefinitions + "\n" + commandTemplate.replace(">SUBSYSTEM<", subsystem).replace(">NAME<", name).replace(">UPPER_NAME<", upperName)
     with open(sourceTemplateFile, "r") as s:
         with open(destinationFile, "w") as d:
-            d.write(s.read().replace("{subsystem}", subsystem).replace("{commandDefinitions}", commandDefinitions))
+            d.write(s.read().replace(">SUBSYSTEM<", subsystem).replace(">COMMAND_DEFINITIONS<", commandDefinitions).replace(">NAMESPACE<", namespace))
 
-def processContext(commands, sourceTemplateFile, commandTemplateFile, destinationFile):
+def processContext(namespace, commands, sourceTemplateFile, commandTemplateFile, destinationFile):
     commandTemplate = ""
     with open(commandTemplateFile, "r") as f:
         commandTemplate = f.read()
@@ -28,12 +26,12 @@ def processContext(commands, sourceTemplateFile, commandTemplateFile, destinatio
     for command in commands:
         name = command.name
         upperName = name[0].upper() + name[1:]
-        commandDefinitions = commandDefinitions + "\n" + commandTemplate.format(subsystem = subsystem, name = name, upperName = upperName)
+        commandDefinitions = commandDefinitions + "\n" + commandTemplate.replace(">SUBSYSTEM<", subsystem).replace(">NAME<", name).replace(">UPPER_NAME<", upperName)
     with open(sourceTemplateFile, "r") as s:
         with open(destinationFile, "w") as d:
-            d.write(s.read().replace("{subsystem}", subsystem).replace("{commandDefinitions}", commandDefinitions))
+            d.write(s.read().replace(">SUBSYSTEM<", subsystem).replace(">COMMAND_DEFINITIONS<", commandDefinitions).replace(">NAMESPACE<", namespace))
 
-def processController(commands, sourceTemplateFile, commandTemplateFile, destinationFile):
+def processController(namespace, commands, sourceTemplateFile, commandTemplateFile, destinationFile):
     commandTemplate = ""
     with open(commandTemplateFile, "r") as f:
         commandTemplate = f.read()
@@ -42,13 +40,13 @@ def processController(commands, sourceTemplateFile, commandTemplateFile, destina
     for command in commands:
         name = command.name
         upperName = name[0].upper() + name[1:]
-        commandDefinitions = commandDefinitions + commandTemplate.format(subsystem = subsystem, name = name, upperName = upperName)
+        commandDefinitions = commandDefinitions + commandTemplate.replace(">SUBSYSTEM<", subsystem).replace(">NAME<", name).replace(">UPPER_NAME<", upperName)
     commandDefinitions = commandDefinitions[:-1]
     with open(sourceTemplateFile, "r") as s:
         with open(destinationFile, "w") as d:
-            d.write(s.read().replace("{subsystem}", subsystem).replace("{commandDefinitions}", commandDefinitions))
+            d.write(s.read().replace(">SUBSYSTEM<", subsystem).replace(">COMMAND_DEFINITIONS<", commandDefinitions).replace(">NAMESPACE<", namespace))
 
-def processStates(commands, sourceTemplateFile, commandTemplateFile, destinationFile):
+def processStates(namespace, commands, sourceTemplateFile, commandTemplateFile, destinationFile):
     commandTemplate = ""
     with open(commandTemplateFile, "r") as f:
         commandTemplate = f.read()
@@ -57,12 +55,12 @@ def processStates(commands, sourceTemplateFile, commandTemplateFile, destination
     for command in commands:
         name = command.name
         upperName = name[0].upper() + name[1:]
-        commandDefinitions = commandDefinitions + "\n" + commandTemplate.format(subsystem = subsystem, name = name, upperName = upperName)
+        commandDefinitions = commandDefinitions + "\n" + commandTemplate.replace(">SUBSYSTEM<", subsystem).replace(">NAME<", name).replace(">UPPER_NAME<", upperName)
     with open(sourceTemplateFile, "r") as s:
         with open(destinationFile, "w") as d:
-            d.write(s.read().replace("{subsystem}", subsystem).replace("{commandDefinitions}", commandDefinitions))
+            d.write(s.read().replace(">SUBSYSTEM<", subsystem).replace(">COMMAND_DEFINITIONS<", commandDefinitions).replace(">NAMESPACE<", namespace))
 
-def processThreads(commands, sourceTemplateFile, commandTemplateFile, destinationFile):
+def processThreads(namespace, commands, sourceTemplateFile, commandTemplateFile, destinationFile):
     commandTemplate = ""
     with open(commandTemplateFile, "r") as f:
         commandTemplate = f.read()
@@ -71,55 +69,63 @@ def processThreads(commands, sourceTemplateFile, commandTemplateFile, destinatio
     for command in commands:
         name = command.name
         upperName = name[0].upper() + name[1:]
-        commandDefinitions = commandDefinitions + "\n" + commandTemplate.format(subsystem = subsystem, name = name, upperName = upperName)
+        commandDefinitions = commandDefinitions + "\n" + commandTemplate.replace(">SUBSYSTEM<", subsystem).replace(">NAME<", name).replace(">UPPER_NAME<", upperName)
     with open(sourceTemplateFile, "r") as s:
         with open(destinationFile, "w") as d:
-            d.write(s.read().replace("{subsystem}", subsystem).replace("{commandDefinitions}", commandDefinitions))
+            d.write(s.read().replace(">SUBSYSTEM<", subsystem).replace(">COMMAND_DEFINITIONS<", commandDefinitions).replace(">NAMESPACE<", namespace))
 
-if len(sys.argv) != 6:
+if len(sys.argv) != 7:
     print("""
 Version: 1.0
 
 Note: If the XML doesn't exist specify None for the path
     
-usage: *.py <GenericsPath> <CommandsPath> <EventsPath> <TelemetryPath> <OutputDirectory>
-example: *.py /tmp/SALGenerics.xml /tmp/tmp_Commands.xml /tmp/tmp_Events.xml /tmp/tmp_Telemetry.xml /tmp/tmpEUI""")
+usage: *.py <GenericsPath> <CommandsPath> <EventsPath> <TelemetryPath> <OutputDirectory> <namespace>
+example: *.py /tmp/SALGenerics.xml /tmp/tmp_Commands.xml /tmp/tmp_Events.xml /tmp/tmp_Telemetry.xml /tmp/tmpEUI lsst.ts.mt.m1m3.ss""")
 else:
     outputDir = sys.argv[5]
-    if not os.path.exists(os.path.join(outputDir, "src")):
-        os.makedirs(os.path.join(outputDir, "src"))
+    namespace = sys.argv[6]
+    tokens = namespace.split(".")
+    print(tokens)
+    path = os.path.join(outputDir, "python")
+    if not os.path.exists(path):
+        os.makedirs(path)
+    for token in tokens:
+        path = os.path.join(path, token)
+        if not os.path.exists(path):
+            os.makedirs(path)
     if not os.path.exists(os.path.join(outputDir, "tests")):
         os.makedirs(os.path.join(outputDir, "tests"))
     
     parser = SALXMLParser()
     commands, events, telemetry, enumerations = parser.parse(sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4])
-    generator = PythonEnumerationGenerator()
-    generator.generate(commands, events, telemetry, enumerations, os.path.join(outputDir, "src"))
-    generator = SALPYControllerGenerator(commands, events, telemetry)
-    generator.generate(os.path.join(outputDir, "src"))
-    generator.generate(os.path.join(outputDir, "tests"))
-    generator = SALPYRemoteGenerator(commands, events, telemetry)
-    generator.generate(os.path.join(outputDir, "tests"))
+    generator = SALPYGenerator(commands, events, telemetry, enumerations)
+    generator.generate(path)
 
     templateDir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Controller-Template")
 
-    processCommands(commands, os.path.join(templateDir, "src", "Commands.py"), os.path.join(templateDir, "src", "CommandTemplate.py"), os.path.join(outputDir, "src", "Commands.py"))
-    processContext(commands, os.path.join(templateDir, "src", "Context.py"), os.path.join(templateDir, "src", "ContextCommandTemplate.py"), os.path.join(outputDir, "src", "Context.py"))
-    processController(commands, os.path.join(templateDir, "src", "Controller.py"), os.path.join(templateDir, "src", "ControllerCommandTemplate.py"), os.path.join(outputDir, "src", "Controller.py"))
-    processStates(commands, os.path.join(templateDir, "src", "States.py"), os.path.join(templateDir, "src", "StatesCommandTemplate.py"), os.path.join(outputDir, "src", "States.py"))
-    processThreads(commands, os.path.join(templateDir, "src", "Threads.py"), os.path.join(templateDir, "src", "ThreadsCommandTemplate.py"), os.path.join(outputDir, "src", "Threads.py"))
+    processCommands(namespace, commands, os.path.join(templateDir, "src", "commands.py"), os.path.join(templateDir, "src", "commandTemplate.py"), os.path.join(path, "commands.py"))
+    processContext(namespace, commands, os.path.join(templateDir, "src", "context.py"), os.path.join(templateDir, "src", "contextCommandTemplate.py"), os.path.join(path, "context.py"))
+    processController(namespace, commands, os.path.join(templateDir, "src", "controller.py"), os.path.join(templateDir, "src", "controllerCommandTemplate.py"), os.path.join(path, "controller.py"))
+    processStates(namespace, commands, os.path.join(templateDir, "src", "states.py"), os.path.join(templateDir, "src", "statesCommandTemplate.py"), os.path.join(path, "states.py"))
+    processThreads(namespace, commands, os.path.join(templateDir, "src", "threads.py"), os.path.join(templateDir, "src", "threadsCommandTemplate.py"), os.path.join(path, "threads.py"))
     files = [
-        [os.path.join(templateDir, "src", "Main.py"), os.path.join(outputDir, "src", "Main.py")],
-        [os.path.join(templateDir, "src", "Model.py"), os.path.join(outputDir, "src", "Model.py")],
-        [os.path.join(templateDir, "src", "Run.py"), os.path.join(outputDir, "src", "Run.py")],
-        [os.path.join(templateDir, "src", "Setup.py"), os.path.join(outputDir, "src", "Setup.py")],
-        [os.path.join(templateDir, "tests", "Tests.py"), os.path.join(outputDir, "tests", "Tests.py")],
+        [os.path.join(templateDir, "src", "main.py"), os.path.join(path, "main.py")],
+        [os.path.join(templateDir, "src", "model.py"), os.path.join(path, "model.py")],
+        [os.path.join(templateDir, "src", "run.py"), os.path.join(path, "run.py")],
+        [os.path.join(templateDir, "src", "setup.py"), os.path.join(path, "setup.py")],
+        [os.path.join(templateDir, "tests", "tests.py"), os.path.join(outputDir, "tests", "tests.py")],
+        [os.path.join(templateDir, "src", "limits.py"), os.path.join(path, "limits.py")],
+        [os.path.join(templateDir, "src", "functions.py"), os.path.join(path, "functions.py")],
+        [os.path.join(templateDir, "src", "domain.py"), os.path.join(path, "domain.py")],
+        [os.path.join(templateDir, "src", "utilities.py"), os.path.join(path, "utilities.py")],
+        [os.path.join(templateDir, "src", "settings.py"), os.path.join(path, "settings.py")],
     ]
     for file in files:
         source = file[0]
         dest = file[1]
         with open(source, "r") as s:
             with open(dest, "w") as d:
-                d.write(s.read().replace("{subsystem}", commands[0].subsystem))
+                d.write(s.read().replace(">SUBSYSTEM<", commands[0].subsystem).replace(">NAMESPACE<", namespace))
 
     
